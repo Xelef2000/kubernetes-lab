@@ -1,0 +1,10 @@
+*terraform/
+*.terraform.lock.hcl
+*terraform.tfstate.backup
+*terraform.tfstate
+
+backup/
+deploy-gitea/terraform.tfstate
+deploy-argocd/terraform.tfstate
+configure-gitea/terraform.tfstate
+passwords.csv

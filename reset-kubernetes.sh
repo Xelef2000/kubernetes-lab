@@ -1,0 +1,2 @@
+#!/bin/bash
+minikube delete && minikube start --driver=docker && minikube addons enable ingress && kubectl patch deployment -n ingress-nginx ingress-nginx-controller --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value":"--enable-ssl-passthrough"}]'
