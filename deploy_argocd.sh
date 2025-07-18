@@ -163,7 +163,7 @@ GIT_SERVER_URL=$(yq e '.gitea-deployment.gitea_url' "$CONFIG_FILE")
 # Assuming the Gitea URL is like 'gitea.mydevlab.local' and the repo is 'kubernetes-lab-argocd-configs'
 # The full clone URL might be 'http://gitea.mydevlab.local/git-user/kubernetes-lab-argocd-configs.git'
 # For simplicity, if Gitea is on the same URL and allows direct cloning, we'll use:
-FULL_ARGOCD_CONFIG_REPO_URL="http://${GIT_SERVER_URL}/git-user/${ARGOCD_CONFIG_REPO_BASE_NAME}.git" # Adjust 'git-user' if it's different
+FULL_ARGOCD_CONFIG_REPO_URL="http://${GIT_SERVER_URL}/dev-admin/${ARGOCD_CONFIG_REPO_BASE_NAME}.git" # Adjust 'git-user' if it's different
 
 echo "Cloning Argo CD configurations from $FULL_ARGOCD_CONFIG_REPO_URL..."
 if [ -d "$ARGOCD_CONFIG_REPO_BASE_NAME" ]; then
