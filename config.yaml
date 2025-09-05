@@ -1,4 +1,3 @@
-# config.yaml
 
 tf-config:
   binary_path: tofu
@@ -7,19 +6,17 @@ kubernetes:
   kubeconfig: ~/.kube/config
   kubecontext: minikube
 
-gitea-deployment:
-  gitea_namespace: gitea-dev
-  gitea_release_name: my-gitea-instance
-  gitea_admin_username: dev-admin
-  gitea_admin_password: "SuperSecurePassword!" 
-  gitea_admin_email: dev-admin@example.com
-  gitea_url: gitea.mydevlab.local
-
-gitea-config:
-  initial_repo_name: my-provisioning-repo
-  initial_repo_description: "Repository for initial infrastructure provisioning manifests."
-  initial_argocd_repo: "https://github.com/Xelef2000/kubernetes-lab-argocd-configs.git"
-
+pygitserver-deployment:
+  git_namespace: git-server-dev
+  git_release_name: my-git-instance
+  git_url: git.mydevlab.local
+  ingress_class_name: "nginx"
+  
+  repos:
+    - name: "my-first-repo"
+      init_from: "" # Creates an empty repository
+    - name: "argocd-configs"
+      init_from: "https://github.com/Xelef2000/kubernetes-lab-argocd-configs.git"
 
 argocd-deployment:
   argocd_url: argocd.mydevlab.local

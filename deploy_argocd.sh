@@ -8,7 +8,7 @@ CONFIG_FILE="config.yaml"
 TFVARS_FILE_DEPLOY="argocd.tfvars"
 TF_MODULE_PATH_DEPLOY="deploy-argocd" # Subfolder for Argo CD Helm chart deployment
 
-ARGOCD_CONFIG_REPO_BASE_NAME="kubernetes-lab-argocd-configs" # Base name of the Git repo for Argo CD configurations
+ARGOCD_CONFIG_REPO_BASE_NAME="argocd-configs" # Base name of the Git repo for Argo CD configurations
 
 HOSTS_FILE="/etc/hosts"
 HOSTS_BACKUP_DIR="backup"
@@ -157,13 +157,13 @@ echo "--- Host File Update Complete! ---"
 echo "--- Configuring Argo CD ---"
 
 # Get the Git server URL from config.yaml
-GIT_SERVER_URL=$(yq e '.gitea-deployment.gitea_url' "$CONFIG_FILE")
+GIT_SERVER_URL=$(yq e '.pygitserver-deployment.git_url' "$CONFIG_FILE")
 
 # Construct the full Git repository URL
 # Assuming the Gitea URL is like 'gitea.mydevlab.local' and the repo is 'kubernetes-lab-argocd-configs'
 # The full clone URL might be 'http://gitea.mydevlab.local/git-user/kubernetes-lab-argocd-configs.git'
 # For simplicity, if Gitea is on the same URL and allows direct cloning, we'll use:
-FULL_ARGOCD_CONFIG_REPO_URL="http://${GIT_SERVER_URL}/git-user/${ARGOCD_CONFIG_REPO_BASE_NAME}.git" # Adjust 'git-user' if it's different
+FULL_ARGOCD_CONFIG_REPO_URL="http://${GIT_SERVER_URL}/${ARGOCD_CONFIG_REPO_BASE_NAME}" 
 
 echo "Cloning Argo CD configurations from $FULL_ARGOCD_CONFIG_REPO_URL..."
 if [ -d "$ARGOCD_CONFIG_REPO_BASE_NAME" ]; then
