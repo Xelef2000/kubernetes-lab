@@ -156,25 +156,55 @@ echo "--- Host File Update Complete! ---"
 # --- Configure Argo CD ---
 echo "--- Configuring Argo CD ---"
 
-# Get the Git server URL from config.yaml
-GIT_SERVER_URL=$(yq e '.pygitserver-deployment.git_url' "$CONFIG_FILE")
+# Get the Git server details from config.yaml
+GIT_SERVER_HOST=$(yq e '.pygitserver-deployment.git_url' "$CONFIG_FILE")
+GIT_NAMESPACE=$(yq e '.pygitserver-deployment.git_namespace' "$CONFIG_FILE")
+GIT_RELEASE_NAME=$(yq e '.pygitserver-deployment.git_release_name' "$CONFIG_FILE")
 
-# Construct the full Git repository URL
-# Assuming the Gitea URL is like 'gitea.mydevlab.local' and the repo is 'kubernetes-lab-argocd-configs'
-# The full clone URL might be 'http://gitea.mydevlab.local/git-user/kubernetes-lab-argocd-configs.git'
-# For simplicity, if Gitea is on the same URL and allows direct cloning, we'll use:
-FULL_ARGOCD_CONFIG_REPO_URL="http://${GIT_SERVER_URL}/${ARGOCD_CONFIG_REPO_BASE_NAME}" 
+# 1. External URL (for local git clone)
+EXTERNAL_REPO_URL="http://${GIT_SERVER_HOST}/${ARGOCD_CONFIG_REPO_BASE_NAME}"
 
-echo "Cloning Argo CD configurations from $FULL_ARGOCD_CONFIG_REPO_URL..."
+# 2. Internal Cluster URL (for Argo CD to talk to Git Server)
+# Format: http://<service-name>.<namespace>.svc.cluster.local:<port>/<repo>
+GIT_SERVICE_NAME="${GIT_RELEASE_NAME}-pygitserver"
+
+# --- FIX: Added :8000 port here ---
+INTERNAL_REPO_URL="http://${GIT_SERVICE_NAME}.${GIT_NAMESPACE}.svc.cluster.local:8000/${ARGOCD_CONFIG_REPO_BASE_NAME}"
+
+echo "Cloning Argo CD configurations locally from $EXTERNAL_REPO_URL..."
+
 if [ -d "$ARGOCD_CONFIG_REPO_BASE_NAME" ]; then
     echo "Repository '$ARGOCD_CONFIG_REPO_BASE_NAME' already exists. Pulling latest changes."
     pushd "$ARGOCD_CONFIG_REPO_BASE_NAME" > /dev/null
     git pull
     popd > /dev/null
 else
-    # Corrected: use the full URL for cloning
-    git clone "$FULL_ARGOCD_CONFIG_REPO_URL"
+    git clone "$EXTERNAL_REPO_URL"
 fi
+
+# --- Register the Git Repo in Argo CD ---
+echo "--- Registering Git Repo in Argo CD ---"
+echo "Adding Internal Cluster URL: $INTERNAL_REPO_URL"
+
+REPO_SECRET_NAME="argocd-repo-configs"
+
+# Update/Create the secret with the correct port URL
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: $REPO_SECRET_NAME
+  namespace: $ARGOCD_NAMESPACE
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: git
+  url: $INTERNAL_REPO_URL
+  name: "ArgoCD Configuration Repository"
+EOF
+
+echo "Git repository registered successfully with Port 8000."
+# -----------------------------------------------
 
 echo "Applying Argo CD configurations..."
 
